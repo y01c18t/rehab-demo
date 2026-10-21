@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>術後復健追蹤系統Demo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#f6f4ef; --surface:#ffffff; --ink:#1d2726; --muted:#56625f; --line:#dcdfdb; --line2:#eceeec; --field:#b9c2bf;
+  --teal:#1e6f68; --teal-ink:#165a54; --teal-soft:#e3efec; --teal-bar:#8fbdb5;
+  --alert:#b0481a; --alert-ink:#8a3510; --alert-soft:#fbeee6; --alert-line:#efc9b3;
+  --nav:#123532; --nav-ink:#f3efe6; --nav-active:#1e4f4a; --nav-muted:#c9d6d3;
+  --admin:#2b2f45; --admin-active:#43486a;
+  --frame:#d5dad8; --video:#dfe7e4;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#141a19; --surface:#1d2524; --ink:#e8ecea; --muted:#a3b0ac; --line:#33403d; --line2:#2a3533; --field:#4a5855;
+    --teal:#2f8f86; --teal-ink:#8fd3c8; --teal-soft:#1f3a37; --teal-bar:#3f7e76;
+    --alert:#d9692f; --alert-ink:#f0a87f; --alert-soft:#3a251b; --alert-line:#6b3a22;
+    --nav:#0d1f1d; --nav-ink:#e8ecea; --nav-active:#1f3a37; --nav-muted:#9fb3ae;
+    --admin:#1b1e2e; --admin-active:#34385a;
+    --frame:#2a3533; --video:#26302e;
+    color-scheme: dark;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;line-height:1.5}
+a{color:var(--teal)}
+button,input,select,textarea{font-family:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+.demo{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px;padding:12px 24px;border-bottom:1px solid var(--line);background:var(--surface)}
+.demo h1{margin:0;font-size:17px;font-weight:700}
+.demo small{color:var(--muted);font-size:13px}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{min-height:40px;padding:0 16px;border:0;background:transparent;font-size:15px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--teal);color:#fff;font-weight:500}
+.ghost{min-height:40px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:transparent;font-size:14px;cursor:pointer}
+.s-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 24px;padding:14px 32px;background:var(--nav);color:var(--nav-ink)}
+.s-head.admin{background:var(--admin)}
+.s-head .brand{font-size:18px;font-weight:700}
+.s-nav{display:flex;flex-wrap:wrap;gap:6px}
+.s-nav button{min-height:40px;padding:0 14px;border:0;border-radius:8px;background:transparent;color:var(--nav-ink);font-size:15px;cursor:pointer}
+.s-nav button[aria-current="page"]{background:var(--nav-active)}
+.s-head.admin .s-nav button[aria-current="page"]{background:var(--admin-active)}
+.s-head .who{font-size:14px;color:var(--nav-muted)}
+.s-main{max-width:1200px;margin:0 auto;padding:28px 24px 56px;display:flex;flex-direction:column;gap:20px}
+.row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 16px}
+h2.page{margin:0;font-size:28px}
+.sub{font-size:15px;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px 24px;display:flex;flex-direction:column;gap:14px}
+.card h3{margin:0;font-size:17px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 20px;border-radius:10px;border:0;background:var(--teal);color:#fff;font-size:15px;font-weight:500;cursor:pointer;text-decoration:none}
+.btn.line{background:var(--surface);border:1px solid var(--teal);color:var(--teal)}
+.btn.plain{background:var(--surface);border:1px solid var(--field);color:var(--ink);font-weight:400}
+.btn.warn{background:var(--alert)}
+.btn.warn-line{background:var(--surface);border:1px solid var(--alert);color:var(--alert-ink)}
+.link{border:0;background:none;padding:0;color:var(--teal);font-size:15px;cursor:pointer;text-align:left;min-height:32px}
+.alerts{background:var(--alert-soft);border:1px solid var(--alert-line);border-radius:14px;padding:18px 22px;display:flex;flex-direction:column;gap:10px}
+.alerts h3{margin:0;font-size:18px;color:var(--alert-ink)}
+.alert-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 24px;background:var(--surface);border-radius:10px;padding:12px 16px}
+.alert-row .who{font-weight:700;min-width:72px}
+.alert-row .what{flex:1 1 260px}
+.alert-row .when{font-size:14px;color:var(--muted)}
+.alert-row button{min-height:44px;padding:0 16px;border-radius:8px;border:1px solid var(--alert);background:transparent;color:var(--alert-ink);font-size:15px;font-weight:500;cursor:pointer}
+.ok{background:var(--teal-soft);border:1px solid var(--teal-bar);border-radius:12px;padding:14px 20px;color:var(--teal-ink);font-weight:500}
+.confirm{background:var(--alert-soft);border:1px solid var(--alert-line);border-radius:12px;padding:14px 18px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.confirm span{color:var(--alert-ink);font-weight:500}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:14px;color:var(--muted)}
+.field input,.field select,.field textarea{min-height:44px;padding:0 12px;border:1px solid var(--field);border-radius:8px;font-size:15px;background:var(--surface)}
+.field textarea{padding:12px;line-height:1.6;resize:vertical}
+.err{color:var(--alert-ink);font-size:14px}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{text-align:left;font-weight:500;color:var(--muted);font-size:14px;padding:11px 12px;border-bottom:1px solid var(--line)}
+td{padding:11px 12px;border-bottom:1px solid var(--line2);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:14px;font-weight:500;white-space:nowrap}
+.pill.bad{background:var(--alert-soft);color:var(--alert-ink)}
+.pill.good{background:var(--teal-soft);color:var(--teal-ink)}
+.pill.off{background:var(--line2);color:var(--muted)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.flex2{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
+.act{display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;padding:12px 16px;border:1px solid var(--line);border-radius:10px}
+.act > label:first-child{flex:1 1 200px;display:flex;align-items:center;gap:10px;font-size:16px;min-height:44px}
+.act input[type=checkbox]{width:20px;height:20px;accent-color:var(--teal)}
+.act .num{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.act .num input{width:64px;min-height:40px;padding:0 8px;border:1px solid var(--field);border-radius:8px;font-size:15px;background:var(--surface)}
+.big{font-size:56px;font-weight:700;color:var(--teal);line-height:1.1}
+.bar{height:12px;border-radius:999px;background:var(--teal-soft);overflow:hidden}
+.bar span{display:block;height:100%;background:var(--teal)}
+.chart{display:flex;align-items:flex-end;gap:10px;height:170px;border-bottom:1px solid var(--line)}
+.chart div{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:13px;color:var(--muted)}
+.chart i{display:block;width:100%;background:var(--teal-bar);border-radius:4px 4px 0 0}
+.chart .hot{color:var(--alert-ink);font-weight:700}
+.chart .hot i{background:var(--alert)}
+.days{display:flex;gap:10px;font-size:13px;color:var(--muted)}
+.days span{flex:1;text-align:center}
+.plan{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line2);font-size:15px}
+.plan:last-child{border-bottom:0}
+.report{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:32px 36px;display:flex;flex-direction:column;gap:22px}
+.report h3{margin:0;font-size:22px}
+.report h4{margin:0 0 8px;font-size:16px}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.kv div{background:var(--bg);border-radius:10px;padding:12px 14px}
+.kv b{display:block;font-size:22px}
+.kv span{font-size:14px;color:var(--muted)}
+.stage{display:flex;justify-content:center;padding:28px 16px 48px}
+.device{position:relative;width:406px;max-width:100%}
+.phone{position:relative;width:100%;height:860px;border:8px solid #000;border-radius:54px;background:var(--bg);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 0 2px #c4c4c8,0 0 0 3px #e6e6e8,0 18px 40px rgba(0,0,0,.18)}
+.island{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:118px;height:34px;border-radius:20px;background:#000;z-index:5;pointer-events:none}
+.island::after{content:"";position:absolute;right:13px;top:11px;width:12px;height:12px;border-radius:50%;background:#1b1f3a;box-shadow:inset 0 0 0 3px #0d0f1e}
+.side{position:absolute;width:4px;background:#c4c4c8;border-radius:2px}
+.side.l{left:-5px}.side.r{right:-5px}
+.p-body{flex:1;overflow-y:auto;padding:58px 20px 22px;display:flex;flex-direction:column;gap:14px;font-size:16px}
+.p-body h2{margin:0;font-size:24px}
+.p-back{border:0;background:none;padding:0;color:var(--teal);font-size:16px;font-weight:500;min-height:44px;text-align:left;cursor:pointer}
+.p-btn{display:flex;align-items:center;justify-content:center;min-height:52px;border-radius:14px;border:0;background:var(--teal);color:#fff;font-size:18px;font-weight:700;cursor:pointer;width:100%}
+.p-btn.sec{background:var(--surface);border:1px solid var(--teal);color:var(--teal)}
+.p-field{display:flex;flex-direction:column;gap:8px}
+.p-field label,.p-legend{font-size:16px;font-weight:500}
+.p-field input,.p-field select,.p-field textarea{min-height:48px;padding:0 12px;border:1px solid var(--field);border-radius:12px;font-size:16px;background:var(--surface);width:100%}
+.p-field textarea{padding:14px;line-height:1.6;resize:none}
+.p-task{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:66px;padding:10px 14px;border-radius:14px;background:var(--surface);border:1px solid var(--line);cursor:pointer;width:100%;text-align:left;font-size:inherit}
+.p-task.next{border:2px solid var(--teal)}
+.p-task b{display:block;font-size:17px}
+.p-task span.d{font-size:14px;color:var(--muted)}
+.p-note{display:flex;align-items:center;gap:12px;background:var(--teal-soft);color:var(--teal-ink);border-radius:14px;padding:12px 14px;font-size:15px;font-weight:500}
+.p-note.warn{background:var(--alert-soft);color:var(--alert-ink)}
+.p-warn{background:var(--alert-soft);border-radius:14px;padding:14px 16px}
+.p-warn h3{margin:0 0 4px;font-size:16px;color:var(--alert-ink)}
+.p-warn p{margin:0;font-size:15px;line-height:1.6}
+.p-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.p-card h3{margin:0;font-size:17px}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;text-align:center;font-size:14px;color:var(--muted)}
+.week i{display:flex;align-items:center;justify-content:center;height:36px;border-radius:10px;font-style:normal;font-size:15px;font-weight:700}
+.week i.y{background:var(--teal);color:#fff}
+.week i.n{background:var(--line2);color:var(--muted)}
+.pains{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.pains button{min-height:46px;border-radius:12px;border:1px solid var(--field);background:var(--surface);font-size:18px;font-weight:700;cursor:pointer}
+.pains button[aria-pressed="true"]{background:var(--teal);border:2px solid var(--teal);color:#fff}
+.p-tab{display:flex;border-top:1px solid var(--line);background:var(--surface);padding-bottom:14px}
+.p-tab button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:64px;border:0;background:none;color:var(--muted);font-size:13px;cursor:pointer;position:relative}
+.p-tab button[aria-current="page"]{color:var(--teal);font-weight:700}
+.badge{position:absolute;top:10px;right:calc(50% - 22px);min-width:20px;height:20px;border-radius:999px;background:var(--alert);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.msg{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.msg.mine{align-self:flex-end;max-width:88%;background:var(--teal-soft);border-color:transparent}
+.msg p{margin:0;line-height:1.7}
+.spacer{flex:1}
+.center{text-align:center}
+@media (prefers-reduced-motion:no-preference){.fade{animation:fade .25s ease-out}@keyframes fade{from{opacity:0}to{opacity:1}}}
+@media print{.demo,.s-head,.no-print{display:none!important}body{background:#fff;color:#000}.s-main{padding:0;max-width:none}.report{border:0;padding:0}}
+</style>
+</head>
+<body>
+<header class="demo">
+  <h1>術後復健追蹤系統Demo</h1>
+  <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+    <div class="seg" role="group" aria-label="切換使用者">
+      <button type="button" data-side="staff">醫療人員後台</button>
+      <button type="button" data-side="patient">病患端手機</button>
+      <button type="button" data-side="admin">系統管理者</button>
+    </div>
+    <button type="button" class="ghost" data-act="reset">重設展示</button>
+  </div>
+</header>
+<div id="app"></div>
+<script>
+const STAFF_NAME = '林雅婷 物理治療師';
+const FEEDBACK = '直膝抬腿時疼痛升高，課表已將每組次數調降為 8 下。若疼痛持續，請在系統中回覆告訴我。';
+const REPLY = '好的，我明天照新的次數做，再回報疼痛狀況。';
+const DAYS = ['10/16','10/17','10/18','10/19','10/20','10/21','10/22'];
+const WEEKDAY = ['五','六','日','一','二','三','四'];
+const BASE_PAIN = [2,3,2,3,4,null,null];
+const BASE_MIN = [15,12,15,10,15,0,0];
+const PREV_PAIN = 4;
+const PLAN = [['股四頭肌等長收縮','3 組 × 每組 10 下'],['直膝抬腿','3 組 × 每組 10 下'],['膝關節彎曲運動','2 組 × 每組 15 下']];
+const PLAYLIST_ID = 'PLy50NfNABdXOisExo2m6TtjsjMsQk4qPc';
+const PLAYLIST_URL = 'https://www.youtube.com/playlist?list=' + PLAYLIST_ID;
+const GUIDES = [
+  {steps:['平躺，雙腿伸直。','大腿前側出力，把膝蓋往床面壓，感覺大腿肌肉繃緊。','停留 5 秒後放鬆。'], note:'出力時保持正常呼吸，不要憋氣。'},
+  {steps:['平躺，未手術側膝蓋彎曲、腳掌踩床。','手術側膝蓋伸直，大腿出力將腳抬高約 30 公分。','停留 5 秒後，慢慢放下。'], note:'若疼痛明顯加劇，請停止動作，並在紀錄中填寫疼痛分數。'},
+  {steps:['坐姿或平躺，雙腿伸直。','腳跟沿著床面慢慢往臀部方向滑，彎曲膝蓋。','彎到可接受的角度停留 5 秒，再慢慢伸直。'], note:'以不引起劇痛為原則，慢慢增加彎曲角度。'}
+];
+const LIB = [
+  {name:'股四頭肌等長收縮', part:'膝關節', steps:'平躺，膝蓋伸直，大腿前側出力把膝蓋往床面壓，停留 5 秒後放鬆。', note:'出力時保持呼吸，不要憋氣。', video:true},
+  {name:'直膝抬腿', part:'膝關節', steps:'平躺，手術側膝蓋伸直，將腳抬高約 30 公分，停留 5 秒後慢慢放下。', note:'若疼痛明顯加劇，請停止動作。', video:true},
+  {name:'膝關節彎曲運動', part:'膝關節', steps:'坐姿或平躺，腳跟沿床面慢慢往臀部滑，彎到可接受角度後伸直。', note:'以不引起劇痛為原則，慢慢增加角度。', video:true},
+  {name:'踝關節幫浦運動', part:'踝關節', steps:'平躺，腳踝反覆向上勾、向下壓。', note:'可促進下肢血液循環。', video:false},
+  {name:'鐘擺運動', part:'肩關節', steps:'身體前傾，手臂自然下垂，以畫小圈方式輕輕擺動。', note:'讓手臂放鬆，由身體帶動擺動。', video:false}
+];
+const USERS = [
+  {name:'林雅婷', title:'物理治療師', acct:'pt.lin', role:'醫療人員', active:true},
+  {name:'陳建宏', title:'醫師', acct:'dr.chen', role:'醫療人員', active:true},
+  {name:'吳佩珊', title:'物理治療師', acct:'pt.wu', role:'醫療人員', active:false},
+  {name:'黃志明', title:'資訊室', acct:'admin01', role:'系統管理者', active:true}
+];
+const init = () => ({
+  side:'staff', s:'list', p:'login', a:'users',
+  saved:false, schedMode:'new', schedEdited:false, schedOff:false, listMsg:'', videoOn:false, guide:1, recAct:'直膝抬腿', sAct:'直膝抬腿', confirmOff:false, schedMsg:'',
+  pain:null, submitted:false, editingRec:false, sPain:null, sDate:'10/22', sMins:10, sCount:20, recUpdated:false,
+  handled:false, fbSent:false, replySent:false, reportMsg:'',
+  lib:LIB.map(x=>Object.assign({},x)), libForm:null, libMsg:'', libDel:null,
+  users:USERS.map(x=>Object.assign({},x)), userForm:null, userMsg:''
+});
+let st = init();
+const set = (patch) => { st = Object.assign({}, st, patch); render(); };
+const hasAlert = () => st.submitted && st.sPain >= 7 && !st.handled;
+const esc = (t) => String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const dayIdx = () => DAYS.indexOf(st.sDate);
+const painSeries = () => { const a = BASE_PAIN.slice(); if (st.submitted) a[dayIdx()] = st.sPain; return a; };
+const minSeries = () => { const a = BASE_MIN.slice(); if (st.submitted) a[dayIdx()] = st.sMins; return a; };
+const doneDays = () => minSeries().filter(m => m > 0).length;
+const rate = () => Math.round(doneDays() / 7 * 100);
+const planText = (i) => i===1 && st.schedEdited ? '3 組 × 每組 8 下' : PLAN[i][1];
+const riseText = () => st.sPain - PREV_PAIN > 0 ? `，較前次上升 ${st.sPain - PREV_PAIN} 分` : '';
+const icon = {
+  home:'<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>',
+  chart:'<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  chat:'<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+  bell:'<svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>',
+  clock:'<svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  check:'<svg aria-hidden="true" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17 19 7"/></svg>',
+  play:'<svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>'
+};
+
+/* ================= 醫療人員後台 ================= */
+function staffHead(cur){
+  const b = (id,t) => `<button type="button" data-s="${id}" ${cur===id?'aria-current="page"':''}>${t}</button>`;
+  return `<header class="s-head"><div class="brand">術後復健追蹤系統｜醫療人員後台</div>
+  <nav class="s-nav" aria-label="主選單">${b('list','病患清單')}${b('schedule','新增課表')}${b('library','復健動作庫')}</nav>
+  <div class="who">${STAFF_NAME}</div></header>`;
+}
+function staffList(){
+  const a = hasAlert();
+  const wangPain = st.submitted ? st.sPain : PREV_PAIN;
+  const rows = [
+    ['王小明','A1023','膝關節置換術', rate()+'%', wangPain, a],
+    ['李美華','A1047','髖關節置換術','40%',3,true],
+    ['張志豪','A1102','前十字韌帶重建','100%',2,false],
+    ['陳淑芬','A1135','肩關節手術','86%',1,false]
+  ];
+  return `${staffHead('list')}<main class="s-main fade">
+  <div class="row"><h2 class="page">病患清單</h2><button type="button" class="btn" data-sched="new">＋ 新增復健課表</button></div>
+  ${st.listMsg?`<div class="ok" role="status">${st.listMsg}</div>`:''}
+  <section class="alerts" aria-labelledby="al"><h3 id="al">異常通知（${a?2:1} 筆待處理）</h3>
+    ${a?`<div class="alert-row"><div class="who">王小明</div><div class="what">疼痛分數 ${st.sPain} 分${riseText()}</div><div class="when">剛剛</div><button type="button" data-s="patient">查看</button></div>`:''}
+    <div class="alert-row"><div class="who">李美華</div><div class="what">連續 3 個應復健日未完成</div><div class="when">今天 08:00</div><button type="button" data-act="demoOnly">查看</button></div>
+  </section>
+  <section class="card" aria-labelledby="pl">
+    <div class="row" style="align-items:flex-end"><h3 id="pl">我負責的病患</h3>
+      <div class="field" style="flex:0 1 340px"><label for="q">搜尋病患</label><input id="q" type="search" placeholder="姓名、病歷號或手術類型"></div></div>
+    <div class="scroll"><table style="min-width:760px"><thead><tr><th>病患</th><th>病歷號</th><th>手術類型</th><th>本週完成率</th><th>最近疼痛分數</th><th>狀態</th><th>操作</th></tr></thead><tbody>
+    ${rows.map((r,i)=>`<tr data-q="${r[0]} ${r[1]} ${r[2]}"><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td><span class="pill ${r[5]?'bad':'good'}">${r[5]?'異常':'正常'}</span></td><td><button type="button" class="link" ${i===0?'data-s="patient"':'data-act="demoOnly"'}>查看紀錄</button></td></tr>`).join('')}
+    <tr id="noMatch" hidden><td colspan="7" class="sub">找不到符合的病患</td></tr>
+    </tbody></table></div>
+  </section></main>`;
+}
+function staffSchedule(){
+  const edit = st.schedMode === 'edit';
+  const act = (name,on,sets,reps)=>`<div class="act"><label><input type="checkbox" ${on?'checked':''}>${name}</label>
+    <label class="num">組數<input type="number" value="${sets}" min="1"></label><label class="num">每組次數<input type="number" value="${reps}" min="1"></label></div>`;
+  return `${staffHead(edit?'list':'schedule')}<main class="s-main fade">
+  <button type="button" class="link" data-s="${edit?'patient':'list'}">← ${edit?'返回病患紀錄':'返回病患清單'}</button>
+  <h2 class="page">${edit?'修改復健課表':'新增復健課表'}</h2>
+  ${st.schedMsg?`<div class="ok row" role="status"><span>${st.schedMsg}</span><button type="button" class="link" data-s="${edit?'patient':'list'}">${edit?'返回病患紀錄':'返回病患清單'}</button></div>`:''}
+  <div class="flex2">
+    <section class="card" style="flex:1 1 320px" aria-labelledby="b1"><h3 id="b1">基本設定</h3>
+      <div class="field"><label for="pt">病患</label><select id="pt" ${edit?'disabled':''}><option>王小明（A1023）膝關節置換術</option><option>李美華（A1047）髖關節置換術</option><option>張志豪（A1102）前十字韌帶重建</option></select></div>
+      <div class="flex2" style="gap:12px"><div class="field" style="flex:1 1 140px"><label for="d1">開始日期</label><input id="d1" type="date" value="2026-10-23"></div><div class="field" style="flex:1 1 140px"><label for="d2">結束日期</label><input id="d2" type="date" value="2026-11-20"></div></div>
+      <div class="flex2" style="gap:12px"><div class="field" style="flex:1 1 140px"><label for="fq">頻率</label><select id="fq"><option>每天</option><option>每週 5 天</option><option>每週 3 天</option></select></div><div class="field" style="flex:1 1 140px"><label for="tm">預定執行時間</label><input id="tm" type="time" value="09:00"></div></div>
+    </section>
+    <section class="card" style="flex:2 1 480px" aria-labelledby="b2"><h3 id="b2">從復健動作庫選擇動作</h3>
+      ${st.lib.map((x,i)=>act(x.name, i<3, i===1&&edit?3:(i===2?2:3), i===1&&edit?8:(i===2?15:10))).join('')}
+    </section>
+  </div>
+  <div class="row" style="justify-content:flex-end"><button type="button" class="btn plain" data-s="${edit?'patient':'list'}">取消</button><button type="button" class="btn" data-act="saveSched">${edit?'儲存變更並通知病患':'儲存並通知病患'}</button></div>
+  </main>`;
+}
+function painChart(){
+  const pains = painSeries();
+  return `<div class="chart" role="img" aria-label="近 7 天疼痛分數">${pains.map(v=> v===null
+      ? `<div><span>—</span><i style="height:2px"></i></div>`
+      : `<div class="${v>=7?'hot':''}"><span>${v}</span><i style="height:${Math.max(v*16,2)}px"></i></div>`).join('')}</div>
+    <div class="days">${DAYS.map(d=>`<span>${d}</span>`).join('')}</div>`;
+}
+function recordRows(){
+  const rows = [['10/20','膝關節彎曲運動',30,15,4],['10/19','股四頭肌等長收縮',30,10,3]];
+  if (st.submitted) rows.unshift([st.sDate,st.sAct,st.sCount,st.sMins,st.sPain]);
+  return rows;
+}
+function staffPatient(){
+  const a = hasAlert();
+  const r = rate();
+  return `${staffHead('list')}<main class="s-main fade">
+  <button type="button" class="link" data-s="list">← 返回病患清單</button>
+  <div class="row"><div><h2 class="page">王小明</h2><div class="sub">病歷號 A1023｜膝關節置換術｜術後第 18 天</div></div>
+    <div class="row" style="gap:10px"><button type="button" class="btn line" data-s="report">匯出進度報告</button></div></div>
+  ${a?`<section class="alerts row" style="flex-direction:row;align-items:center" aria-label="異常事件"><div><h3>異常事件：疼痛分數 ${st.sPain} 分${riseText()}</h3><div class="sub">剛剛｜${st.sAct}｜系統已標示異常</div></div><button type="button" class="btn warn" data-act="handle">標記為已查看並記錄處理</button></section>`:''}
+  ${st.handled?`<div class="ok" role="status">已記錄處理狀態：已查看，將調整課表並提供回饋。</div>`:''}
+  <div class="grid2">
+    <section class="card" aria-labelledby="r1"><h3 id="r1">本週完成率</h3><div class="big">${r}%</div><div class="sub">7 個應復健日中完成 ${doneDays()} 天</div><div class="bar"><span style="width:${r}%"></span></div></section>
+    <section class="card" aria-labelledby="r2"><h3 id="r2">疼痛分數趨勢（近 7 天，0–10 分）</h3>${painChart()}</section>
+  </div>
+  <div class="grid2">
+    <section class="card" aria-labelledby="cp"><div class="row"><h3 id="cp">目前課表</h3><span class="pill ${st.schedOff?'off':'good'}">${st.schedOff?'已停用':'執行中'}</span></div>
+      ${st.schedOff?`<div class="sub">課表已停用，系統已通知病患。</div><div><button type="button" class="btn" data-sched="new">新增課表</button></div>`:`
+      <div>${PLAN.map((p,i)=>`<div class="plan"><span>${p[0]}</span><span class="sub">${planText(i)}</span></div>`).join('')}</div>
+      <div class="sub">期間 10/23–11/20｜每天 09:00</div>
+      ${st.confirmOff?`<div class="confirm"><span>確定停用這份課表？停用後系統會通知病患。</span><div class="row" style="gap:8px"><button type="button" class="btn plain" data-act="offCancel">取消</button><button type="button" class="btn warn" data-act="offYes">確定停用</button></div></div>`
+      :`<div class="row" style="justify-content:flex-start;gap:10px"><button type="button" class="btn line" data-sched="edit">修改課表</button><button type="button" class="btn warn-line" data-act="offAsk">停用課表</button></div>`}`}
+    </section>
+    <section class="card" aria-labelledby="r3"><h3 id="r3">近期復健紀錄</h3><div class="scroll"><table style="min-width:420px"><thead><tr><th>日期</th><th>動作</th><th>次數</th><th>時間</th><th>疼痛</th></tr></thead><tbody>
+      ${recordRows().map((x,i)=>`<tr><td>${x[0]}${i===0&&st.submitted&&st.sDate!=='10/22'?' <span class="pill off">補登</span>':''}</td><td>${x[1]}</td><td>${x[2]}</td><td>${x[3]} 分</td><td style="${x[4]>=7?'color:var(--alert-ink);font-weight:700':''}">${x[4]}</td></tr>`).join('')}
+    </tbody></table></div></section>
+  </div>
+  <section class="card" aria-labelledby="r4"><h3 id="r4">文字回饋</h3>
+    <div class="field"><label for="fb">給病患的回饋</label><textarea id="fb" rows="3">${FEEDBACK}</textarea></div>
+    ${st.fbSent?`<div class="ok" role="status">回饋已送出，系統已通知病患。</div>`:`<div class="row" style="justify-content:flex-end"><button type="button" class="btn" data-act="feedback">送出回饋</button></div>`}
+    ${st.replySent?`<div class="msg mine"><span class="sub">病患回覆｜剛剛</span><p>${REPLY}</p></div>`:''}
+  </section></main>`;
+}
+function staffReport(){
+  const pains = painSeries().filter(v=>v!==null);
+  const avg = (pains.reduce((s,v)=>s+v,0)/pains.length).toFixed(1);
+  const mins = minSeries().reduce((s,v)=>s+v,0);
+  return `${staffHead('list')}<main class="s-main fade">
+  <div class="row no-print"><button type="button" class="link" data-s="patient">← 返回病患紀錄</button>
+    <div class="row" style="gap:10px"><button type="button" class="btn plain" data-act="print">列印</button><button type="button" class="btn" data-act="pdf">下載 PDF</button></div></div>
+  ${st.reportMsg?`<div class="ok no-print" role="status">${st.reportMsg}</div>`:''}
+  <article class="report" aria-labelledby="rt">
+    <div><h3 id="rt">復健進度報告</h3><div class="sub">王小明｜病歷號 A1023｜膝關節置換術｜報告期間 10/16–10/22｜產生者：${STAFF_NAME}</div></div>
+    <div class="kv">
+      <div><b>${rate()}%</b><span>完成率（${doneDays()} / 7 個應復健日）</span></div>
+      <div><b>${mins} 分鐘</b><span>總運動時間</span></div>
+      <div><b>${avg} 分</b><span>平均疼痛分數</span></div>
+      <div><b>${Math.max(...pains)} 分</b><span>最高疼痛分數</span></div>
+    </div>
+    <section><h4>疼痛分數趨勢</h4>${painChart()}</section>
+    <section><h4>異常事件</h4>${st.submitted&&st.sPain>=7?`<div>${st.sDate}：疼痛分數 ${st.sPain} 分${riseText()}｜${st.handled?'已查看並記錄處理':'待處理'}</div>`:'<div class="sub">報告期間無異常事件</div>'}</section>
+    <section><h4>復健紀錄</h4><div class="scroll"><table style="min-width:420px"><thead><tr><th>日期</th><th>動作</th><th>次數</th><th>時間</th><th>疼痛</th></tr></thead><tbody>
+      ${recordRows().map(x=>`<tr><td>${x[0]}</td><td>${x[1]}</td><td>${x[2]}</td><td>${x[3]} 分</td><td>${x[4]}</td></tr>`).join('')}</tbody></table></div></section>
+    <section><h4>醫療人員回饋</h4>${st.fbSent?`<div>${FEEDBACK}</div>`:'<div class="sub">報告期間尚無回饋</div>'}</section>
+  </article></main>`;
+}
+function staffLibrary(){
+  const f = st.libForm;
+  const cur = f && f.idx>=0 ? st.lib[f.idx] : {name:'',part:'膝關節',steps:'',note:'',video:false};
+  const parts = ['膝關節','髖關節','肩關節','踝關節','脊椎'];
+  const form = f ? `<section class="card" aria-labelledby="lf"><h3 id="lf">${f.idx>=0?'編輯復健動作':'新增復健動作'}</h3>
+    <div class="flex2" style="gap:12px">
+      <div class="field" style="flex:2 1 240px"><label for="lf-name">動作名稱</label><input id="lf-name" type="text" value="${esc(cur.name)}" placeholder="例如：直膝抬腿"></div>
+      <div class="field" style="flex:1 1 160px"><label for="lf-part">適用部位</label><select id="lf-part">${parts.map(x=>`<option ${x===cur.part?'selected':''}>${x}</option>`).join('')}</select></div>
+    </div>
+    <div class="field"><label for="lf-steps">步驟說明</label><textarea id="lf-steps" rows="3">${esc(cur.steps)}</textarea></div>
+    <div class="field"><label for="lf-note">注意事項</label><textarea id="lf-note" rows="2">${esc(cur.note)}</textarea></div>
+    <div class="field"><label for="lf-video">教學影片或圖片${cur.video?'（已上傳，可重新選擇檔案取代）':''}</label><input id="lf-video" type="file" accept="video/*,image/*" style="padding:8px 12px"></div>
+    <div id="lf-err" class="err" hidden>請輸入動作名稱</div>
+    <div class="row" style="justify-content:flex-end"><button type="button" class="btn plain" data-act="libCancel">取消</button><button type="button" class="btn" data-act="libSave">${f.idx>=0?'儲存變更':'新增動作'}</button></div>
+  </section>` : '';
+  return `${staffHead('library')}<main class="s-main fade">
+  <div class="row"><div><h2 class="page">復健動作庫</h2><div class="sub">共 ${st.lib.length} 個動作，新增課表時可從這裡挑選</div></div>
+    ${f?'':'<button type="button" class="btn" data-act="libNew">＋ 新增復健動作</button>'}</div>
+  ${st.libMsg?`<div class="ok" role="status">${st.libMsg}</div>`:''}
+  ${st.libDel!==null?`<div class="confirm" role="alertdialog" aria-labelledby="delq"><span id="delq">確定要刪除「${esc(st.lib[st.libDel].name)}」嗎？刪除後無法復原，已使用此動作的課表需另行調整。</span><div class="row" style="gap:8px"><button type="button" class="btn plain" data-act="delCancel">取消</button><button type="button" class="btn warn" data-act="delYes">確定刪除</button></div></div>`:''}
+  ${form}
+  <section class="card" aria-labelledby="ll"><h3 id="ll">動作清單</h3>
+    <div class="scroll"><table style="min-width:820px"><thead><tr><th>動作名稱</th><th>適用部位</th><th>步驟說明</th><th>教學影片</th><th>操作</th></tr></thead><tbody>
+    ${st.lib.map((x,i)=>`<tr><td><b>${esc(x.name)}</b></td><td>${x.part}</td><td style="max-width:420px">${esc(x.steps)}</td><td><span class="pill ${x.video?'good':'bad'}">${x.video?'已上傳':'未上傳'}</span></td><td><div style="display:flex;gap:16px"><button type="button" class="link" data-edit="${i}">編輯</button><button type="button" class="link" style="color:var(--alert-ink)" data-del="${i}">刪除</button></div></td></tr>`).join('')}
+    </tbody></table></div>
+  </section></main>`;
+}
+
+/* ================= 系統管理者 ================= */
+function adminUsers(){
+  const f = st.userForm;
+  const cur = f && f.idx>=0 ? st.users[f.idx] : {name:'',title:'物理治療師',acct:'',role:'醫療人員',active:true};
+  const opt = (list,v) => list.map(x=>`<option ${x===v?'selected':''}>${x}</option>`).join('');
+  const form = f ? `<section class="card" aria-labelledby="uf"><h3 id="uf">${f.idx>=0?'修改帳號與權限':'建立醫療人員帳號'}</h3>
+    <div class="flex2" style="gap:12px">
+      <div class="field" style="flex:1 1 200px"><label for="u-name">姓名</label><input id="u-name" type="text" value="${esc(cur.name)}"></div>
+      <div class="field" style="flex:1 1 160px"><label for="u-title">職稱</label><select id="u-title">${opt(['醫師','物理治療師','護理師','資訊室'],cur.title)}</select></div>
+      <div class="field" style="flex:1 1 200px"><label for="u-acct">帳號</label><input id="u-acct" type="text" value="${esc(cur.acct)}" ${f.idx>=0?'readonly':''}></div>
+    </div>
+    <div class="flex2" style="gap:12px">
+      <div class="field" style="flex:1 1 200px"><label for="u-role">角色權限</label><select id="u-role">${opt(['醫療人員','系統管理者'],cur.role)}</select></div>
+      ${f.idx>=0?`<div class="field" style="flex:1 1 200px"><label for="u-active">帳號狀態</label><select id="u-active"><option value="1" ${cur.active?'selected':''}>啟用</option><option value="0" ${cur.active?'':'selected'}>停用</option></select></div>`
+      :`<div class="field" style="flex:1 1 200px"><label for="u-pwd">初始密碼</label><input id="u-pwd" type="password" placeholder="至少 8 碼"></div>`}
+    </div>
+    <div id="u-err" class="err" hidden>請輸入姓名與帳號</div>
+    <div class="row" style="justify-content:flex-end"><button type="button" class="btn plain" data-act="userCancel">取消</button><button type="button" class="btn" data-act="userSave">${f.idx>=0?'儲存變更':'建立帳號'}</button></div>
+  </section>` : '';
+  return `<header class="s-head admin"><div class="brand">術後復健追蹤系統｜系統管理</div>
+    <nav class="s-nav" aria-label="主選單"><button type="button" aria-current="page">帳號管理</button></nav><div class="who">系統管理者：黃志明</div></header>
+  <main class="s-main fade">
+  <div class="row"><div><h2 class="page">帳號管理</h2><div class="sub">建立醫療人員帳號、設定角色權限或停用帳號</div></div>
+    ${f?'':'<button type="button" class="btn" data-act="userNew">＋ 建立醫療人員帳號</button>'}</div>
+  ${st.userMsg?`<div class="ok" role="status">${st.userMsg}</div>`:''}
+  ${form}
+  <section class="card" aria-labelledby="ul"><h3 id="ul">使用者帳號</h3>
+    <div class="scroll"><table style="min-width:760px"><thead><tr><th>姓名</th><th>職稱</th><th>帳號</th><th>角色權限</th><th>狀態</th><th>操作</th></tr></thead><tbody>
+    ${st.users.map((u,i)=>`<tr><td><b>${esc(u.name)}</b></td><td>${u.title}</td><td>${esc(u.acct)}</td><td>${u.role}</td><td><span class="pill ${u.active?'good':'off'}">${u.active?'啟用':'停用'}</span></td><td><button type="button" class="link" data-uedit="${i}">修改</button></td></tr>`).join('')}
+    </tbody></table></div>
+    <div class="sub">病患帳號由病患自行註冊，經負責的醫療人員綁定後啟用。</div>
+  </section></main>`;
+}
+
+/* ================= 病患端 ================= */
+function tabbar(cur){
+  const b=(id,ic,t,badge)=>`<button type="button" data-p="${id}" ${cur===id?'aria-current="page"':''}>${ic}${t}${badge?'<span class="badge" aria-label="1 則新回饋">1</span>':''}</button>`;
+  return `<nav class="p-tab" aria-label="主選單">${b('home',icon.home,'今日課表')}${b('progress',icon.chart,'我的進度')}${b('feedback',icon.chat,'醫療人員回饋',st.fbSent&&!st.replySent)}</nav>`;
+}
+function pLogin(){
+  return `<div class="p-body fade" style="padding-top:96px;gap:28px">
+  <div class="center" style="display:flex;flex-direction:column;align-items:center;gap:12px">
+    <div aria-hidden="true" style="width:72px;height:72px;border-radius:20px;background:var(--teal);display:flex;align-items:center;justify-content:center"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg></div>
+    <h2>術後復健追蹤</h2><div style="color:var(--muted)">在家也能照著課表好好復健</div></div>
+  <div class="p-field"><label for="ac">帳號</label><input id="ac" type="text" placeholder="身分證字號或手機號碼"></div>
+  <div class="p-field"><label for="pw">密碼</label><input id="pw" type="password" placeholder="請輸入密碼"></div>
+  <button type="button" class="p-btn" data-p="home">登入</button>
+  <div class="spacer"></div>
+  <div class="center" style="display:flex;justify-content:center;gap:24px;font-size:15px"><a href="#" onclick="return false">註冊帳號</a><a href="#" onclick="return false">忘記密碼</a></div>
+  </div>`;
+}
+function pHome(){
+  const done = [true,false,false];
+  const todayIdx = PLAN.findIndex(x=>x[0]===st.sAct);
+  if (st.submitted && st.sDate==='10/22' && todayIdx>=0) done[todayIdx] = true;
+  const count = done.filter(Boolean).length;
+  const allDone = count === 3;
+  const next = done.indexOf(false);
+  const t = (i)=>`<button type="button" class="p-task ${i===next?'next':''}" data-guide="${i}"><span><b>${PLAN[i][0]}</b><span class="d">${planText(i)}</span></span><span class="pill ${done[i]?'good':'bad'}">${done[i]?'已完成':'待完成'}</span></button>`;
+  return `<div class="p-body fade">
+  <div><div style="font-size:15px;color:var(--muted)">10 月 22 日（星期四）</div><h2>早安，王小明</h2></div>
+  ${!allDone&&!st.schedOff?`<div class="p-note warn" role="status">${icon.clock}提醒：今天 09:00 的復健時間到了</div>`:''}
+  ${st.saved&&!st.schedOff?`<div class="p-note" role="status">${icon.bell}醫療人員已${st.schedEdited?'修改':'更新'}你的復健課表</div>`:''}
+  ${st.fbSent&&!st.replySent?`<div class="p-note" role="status">${icon.chat}你有 1 則新的醫療人員回饋</div>`:''}
+  ${st.schedOff?`<div class="p-note warn" role="status">${icon.bell}你的復健課表已由醫療人員停用</div><div class="p-card"><p style="margin:0;line-height:1.6">目前沒有執行中的課表。請依醫療人員指示，或等待新的課表。</p></div>`:`
+  <h3 style="margin:4px 0 0;font-size:18px">今日課表（完成 ${count} / 3）</h3>
+  ${t(0)}${t(1)}${t(2)}
+  <button type="button" class="p-btn" data-rec="${next>=0?PLAN[next][0]:PLAN[0][0]}">填寫復健紀錄</button>`}
+  </div>${tabbar('home')}`;
+}
+function pGuide(){
+  const g = GUIDES[st.guide];
+  return `<div class="p-body fade">
+  <button type="button" class="p-back" data-p="home">← 今日課表</button>
+  <div><h2>${PLAN[st.guide][0]}</h2><div style="color:var(--muted)">${planText(st.guide)}</div></div>
+  ${st.videoOn
+    ? `<div style="display:flex;flex-direction:column;gap:6px"><iframe title="復健教學影片" src="https://www.youtube.com/embed/videoseries?list=${PLAYLIST_ID}&rel=0&autoplay=1" style="width:100%;aspect-ratio:16/9;border:0;border-radius:16px;background:#000" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+       <div style="display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--muted)"><span>來源：三軍總醫院復健部衛教影片</span><a href="${PLAYLIST_URL}" target="_blank" rel="noopener">無法播放？在 YouTube 開啟</a></div></div>`
+    : `<button type="button" data-act="playVideo" aria-label="播放教學影片" style="min-height:180px;border:0;border-radius:16px;background:var(--video);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer">
+    <span style="width:64px;height:64px;border-radius:999px;background:var(--teal);display:flex;align-items:center;justify-content:center">${icon.play}</span><span style="font-size:16px;color:var(--muted)">播放教學影片</span></button>`}
+  <section><h3 style="margin:0 0 6px;font-size:17px">動作步驟</h3><ol style="margin:0;padding-left:24px;line-height:1.6;display:flex;flex-direction:column;gap:6px">
+    ${g.steps.map(x=>`<li>${x}</li>`).join('')}</ol></section>
+  <section class="p-warn"><h3>注意事項</h3><p>${g.note}</p></section>
+  <div class="spacer"></div>
+  <button type="button" class="p-btn" data-rec="${PLAN[st.guide][0]}">完成後填寫紀錄</button>
+  </div>`;
+}
+function pRecord(){
+  if (st.submitted && !st.editingRec) {
+    return `<div class="p-body fade"><button type="button" class="p-back" data-p="home">← 今日課表</button>
+    <div role="status" class="center" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px">
+      <div aria-hidden="true" style="width:88px;height:88px;border-radius:999px;background:var(--teal-soft);color:var(--teal);display:flex;align-items:center;justify-content:center">${icon.check}</div>
+      <div style="font-size:22px;font-weight:700">${st.recUpdated?'紀錄已更新':'紀錄已送出'}</div>
+      <div style="color:var(--muted)">${st.recUpdated?'已重新計算你的進度':'已更新你的完成狀態與進度圖表'}</div>
+      <button type="button" class="p-btn" style="margin-top:12px" data-p="home">返回今日課表</button>
+      <button type="button" class="p-btn sec" data-act="editRec">修改這筆紀錄</button></div></div>`;
+  }
+  const dates = [['10/22','今天（10/22）'],['10/21','昨天（10/21，補登）']];
+  const btns = Array.from({length:11},(_,v)=>`<button type="button" data-pain="${v}" aria-pressed="${st.pain===v}">${v}</button>`).join('');
+  return `<div class="p-body fade">
+  <button type="button" class="p-back" data-p="home">← 今日課表</button>
+  <h2>${st.editingRec?'修改復健紀錄':'填寫復健紀錄'}</h2>
+  <div class="p-field"><label for="dt">日期</label><select id="dt">${dates.map(d=>`<option value="${d[0]}" ${d[0]===st.sDate?'selected':''}>${d[1]}</option>`).join('')}</select></div>
+  <div class="p-field"><label for="ax">復健動作</label><select id="ax">${PLAN.map(x=>`<option ${x[0]===(st.editingRec?st.sAct:st.recAct)?'selected':''}>${x[0]}</option>`).join('')}</select></div>
+  <div style="display:flex;gap:12px"><div class="p-field" style="flex:1"><label for="cn">完成次數</label><input id="cn" type="number" value="${st.sCount}" min="0" inputmode="numeric"></div><div class="p-field" style="flex:1"><label for="mn">時間（分鐘）</label><input id="mn" type="number" value="${st.sMins}" min="0" inputmode="numeric"></div></div>
+  <fieldset style="margin:0;padding:0;border:0;display:flex;flex-direction:column;gap:10px">
+    <legend class="p-legend" id="painLegend" style="margin-bottom:10px">疼痛程度：${st.pain===null?'請選擇':st.pain+' 分'}</legend>
+    <div class="pains">${btns}</div>
+    <div style="display:flex;justify-content:space-between;font-size:15px;color:var(--muted)"><span>0 不痛</span><span>10 非常痛</span></div>
+  </fieldset>
+  <div class="err" id="painHint" hidden>請先選擇疼痛程度</div>
+  <button type="button" class="p-btn" data-act="submit">${st.editingRec?'儲存修改':'送出紀錄'}</button>
+  </div>`;
+}
+function pProgress(){
+  const mins = minSeries();
+  const pains = painSeries();
+  const r = rate();
+  const maxMin = Math.max(...mins, 1);
+  return `<div class="p-body fade">
+  <h2>我的進度</h2>
+  <section class="p-card" aria-labelledby="g1" style="gap:8px"><h3 id="g1">本週完成率</h3>
+    <div style="display:flex;align-items:baseline;gap:10px"><span class="big" style="font-size:40px">${r}%</span><span style="color:var(--muted);font-size:15px">完成 ${doneDays()} / 7 天</span></div>
+    <div class="week">${DAYS.map((d,i)=>`<div><div>${WEEKDAY[i]}</div><i class="${mins[i]>0?'y':'n'}" aria-label="${d}${mins[i]>0?'已完成':'未完成'}">${mins[i]>0?'✓':'—'}</i></div>`).join('')}</div>
+  </section>
+  <section class="p-card" aria-labelledby="g2"><h3 id="g2">每日運動時間（分鐘）</h3>
+    <div class="chart" style="height:92px;gap:6px" role="img" aria-label="每日運動時間">${mins.map(m=>`<div><span>${m||'—'}</span><i style="height:${Math.max(m/maxMin*58,2)}px"></i></div>`).join('')}</div>
+    <div class="days" style="gap:6px">${DAYS.map(d=>`<span>${d.slice(3)}</span>`).join('')}</div>
+  </section>
+  <section class="p-card" aria-labelledby="g3"><h3 id="g3">疼痛分數</h3>
+    <div class="chart" style="height:92px;gap:6px" role="img" aria-label="每日疼痛分數">${pains.map(v=>v===null?`<div><span>—</span><i style="height:2px"></i></div>`:`<div class="${v>=7?'hot':''}"><span>${v}</span><i style="height:${Math.max(v*6,2)}px"></i></div>`).join('')}</div>
+    <div class="days" style="gap:6px">${DAYS.map(d=>`<span>${d.slice(3)}</span>`).join('')}</div>
+  </section>
+  </div>${tabbar('progress')}`;
+}
+function pFeedback(){
+  let body;
+  if (!st.fbSent) {
+    body = `<div class="msg"><p>目前沒有新的回饋。醫療人員查看你的紀錄後，回饋會出現在這裡。</p></div><div class="spacer"></div>`;
+  } else {
+    body = `<article class="msg"><div style="display:flex;justify-content:space-between;gap:8px"><b>${STAFF_NAME}</b><span class="sub">剛剛</span></div><p>${FEEDBACK}</p></article>
+    ${st.replySent?`<article class="msg mine"><span class="sub">我的回覆｜剛剛</span><p>${REPLY}</p></article><div role="status" class="center" style="color:var(--teal-ink);font-weight:500;font-size:14px">回覆已送出，醫療人員會收到通知</div><div class="spacer"></div>`
+    :`<div class="spacer"></div><div class="p-field"><label for="rp">回覆或提出問題</label><textarea id="rp" rows="3">${REPLY}</textarea></div><button type="button" class="p-btn" data-act="reply">送出回覆</button>`}`;
+  }
+  return `<div class="p-body fade"><h2>醫療人員回饋</h2>${body}</div>${tabbar('feedback')}`;
+}
+
+/* ================= 畫面切換與事件 ================= */
+function render(){
+  document.querySelectorAll('[data-side]').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.side===st.side)));
+  const app = document.getElementById('app');
+  if (st.side==='staff') {
+    app.innerHTML = ({list:staffList, schedule:staffSchedule, patient:staffPatient, library:staffLibrary, report:staffReport})[st.s]();
+  } else if (st.side==='admin') {
+    app.innerHTML = adminUsers();
+  } else {
+    const screen = ({login:pLogin, home:pHome, guide:pGuide, record:pRecord, progress:pProgress, feedback:pFeedback})[st.p]();
+    app.innerHTML = `<div class="stage"><div class="device"><span class="side l" style="top:150px;height:32px" aria-hidden="true"></span><span class="side l" style="top:215px;height:62px" aria-hidden="true"></span><span class="side l" style="top:290px;height:62px" aria-hidden="true"></span><span class="side r" style="top:240px;height:96px" aria-hidden="true"></span><div class="phone" aria-label="病患端手機畫面"><span class="island" aria-hidden="true"></span>${screen}</div></div></div>`;
+  }
+  window.scrollTo(0,0);
+}
+const val = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+document.addEventListener('click', (e)=>{
+  const t = e.target.closest('button');
+  if (!t) return;
+  const d = t.dataset;
+  if (d.side) return set({side:d.side});
+  if (d.s) return set({s:d.s, libForm:null, libDel:null, libMsg:'', schedMsg:'', reportMsg:'', confirmOff:false, listMsg:''});
+  if (d.guide !== undefined) return set({p:'guide', guide:Number(d.guide), videoOn:false});
+  if (d.rec) return set({p:'record', recAct:d.rec});
+  if (d.sched) return set({s:'schedule', schedMode:d.sched, schedMsg:''});
+  if (d.p) return set({p:d.p, videoOn:false});
+  if (d.pain !== undefined) {
+    st.pain = Number(d.pain);
+    document.querySelectorAll('[data-pain]').forEach(x=>x.setAttribute('aria-pressed', String(Number(x.dataset.pain)===st.pain)));
+    const lg = document.getElementById('painLegend'); if (lg) lg.textContent = '疼痛程度：' + st.pain + ' 分';
+    const h = document.getElementById('painHint'); if (h) h.hidden = true;
+    return;
+  }
+  if (d.edit !== undefined) return set({libForm:{idx:Number(d.edit)}, libMsg:'', libDel:null});
+  if (d.del !== undefined) return set({libDel:Number(d.del), libForm:null, libMsg:''});
+  if (d.uedit !== undefined) return set({userForm:{idx:Number(d.uedit)}, userMsg:''});
+  switch (d.act) {
+    case 'reset': st = init(); return render();
+    case 'playVideo': return set({videoOn:true});
+    case 'demoOnly': return set({listMsg:'此雛型僅示範「王小明」的病患紀錄，其他病患為範例資料。'});
+    case 'saveSched':
+      return set({saved:true, schedOff:false, schedEdited: st.schedEdited || st.schedMode==='edit', schedMsg: st.schedMode==='edit' ? '課表已更新，系統已通知病患課表異動。' : '課表已儲存（狀態：執行中），系統已通知病患。'});
+    case 'offAsk': return set({confirmOff:true});
+    case 'offCancel': return set({confirmOff:false});
+    case 'offYes': return set({schedOff:true, confirmOff:false});
+    case 'handle': return set({handled:true});
+    case 'feedback': return set({fbSent:true});
+    case 'reply': return set({replySent:true});
+    case 'print': return window.print();
+    case 'pdf': return set({reportMsg:'已產生 PDF 報告（雛型展示，未實際下載檔案）。'});
+    case 'editRec': return set({editingRec:true});
+    case 'submit': {
+      if (st.pain===null) { document.getElementById('painHint').hidden=false; return; }
+      const wasSubmitted = st.submitted;
+      return set({submitted:true, editingRec:false, recUpdated:wasSubmitted, sPain:st.pain, sDate:val('dt')||'10/22',
+        sMins:Number(val('mn'))||0, sCount:Number(val('cn'))||0, sAct:val('ax')||'直膝抬腿', handled:false});
+    }
+    case 'libNew': return set({libForm:{idx:-1}, libMsg:'', libDel:null});
+    case 'delCancel': return set({libDel:null});
+    case 'delYes': {
+      const name = st.lib[st.libDel].name;
+      return set({lib: st.lib.filter((_,i)=>i!==st.libDel), libDel:null, libMsg:`已從復健動作庫刪除「${name}」`});
+    }
+    case 'libCancel': return set({libForm:null});
+    case 'libSave': {
+      const name = val('lf-name');
+      if (!name) { document.getElementById('lf-err').hidden=false; document.getElementById('lf-name').focus(); return; }
+      const idx = st.libForm.idx;
+      const file = document.getElementById('lf-video').files.length > 0;
+      const item = {name, part:val('lf-part'), steps:val('lf-steps'), note:val('lf-note'), video: file || (idx>=0 && st.lib[idx].video)};
+      const lib = st.lib.slice();
+      if (idx>=0) lib[idx]=item; else lib.push(item);
+      return set({lib, libForm:null, libMsg: idx>=0 ? `已儲存「${name}」的變更` : `已新增「${name}」到復健動作庫`});
+    }
+    case 'userNew': return set({userForm:{idx:-1}, userMsg:''});
+    case 'userCancel': return set({userForm:null});
+    case 'userSave': {
+      const name = val('u-name'), acct = val('u-acct');
+      if (!name || !acct) { document.getElementById('u-err').hidden=false; return; }
+      const idx = st.userForm.idx;
+      const users = st.users.slice();
+      const item = {name, acct, title:val('u-title'), role:val('u-role'), active: idx>=0 ? val('u-active')==='1' : true};
+      if (idx>=0) users[idx]=item; else users.push(item);
+      return set({users, userForm:null, userMsg: idx>=0 ? `已更新「${name}」的帳號與權限` : `已建立「${name}」的醫療人員帳號`});
+    }
+  }
+});
+document.addEventListener('input', (e)=>{
+  if (e.target.id !== 'q') return;
+  const q = e.target.value.trim();
+  let shown = 0;
+  document.querySelectorAll('tr[data-q]').forEach(tr=>{ const ok = !q || tr.dataset.q.includes(q); tr.hidden = !ok; if (ok) shown++; });
+  const nm = document.getElementById('noMatch'); if (nm) nm.hidden = shown > 0;
+});
+render();
+</script>
+</body>
+</html>
