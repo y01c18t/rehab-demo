@@ -191,7 +191,24 @@ const INIT_PLAN = [{name:'股四頭肌等長收縮',sets:3,reps:10},{name:'直�
 const INIT_SCHED = {start:'2026-10-16', end:'2026-11-20', freq:'每天', time:'09:00'};
 const NEW_SCHED = {start:TODAY_ISO, end:'2026-11-19', freq:'每天', time:'09:00'};
 const PATIENTS = ['王小明（A1023）膝關節置換術','李美華（A1047）髖關節置換術','張志豪（A1102）前十字韌帶重建'];
-const PLAYLIST_ID = 'PLy50NfNABdXOisExo2m6TtjsjMsQk4qPc';
+// 其他病患的範例資料（唯讀）；days 為 10/16–10/22 每天狀態：y 完成、n 未完成
+const DEMO_PTS = [
+  {name:'李美華', id:'A1047', surgery:'髖關節置換術', postop:12, days:'yyynnnn', pains:[2,3,3,null,null,null,null],
+    alert:'連續 3 個應復健日未完成（10/19–10/21）', sched:'10/10–11/14｜每天 10:00',
+    plan:[['臀橋運動',2,10],['髖關節外展運動',3,10],['踝關節幫浦運動',3,20]],
+    recs:[['10/18','臀橋運動',20,10,3],['10/18','髖關節外展運動',30,12,3],['10/17','踝關節幫浦運動',60,8,3]]},
+  {name:'張志豪', id:'A1102', surgery:'前十字韌帶重建', postop:25, days:'yyyyyyy', pains:[3,3,2,2,3,2,2],
+    alert:'', sched:'10/01–11/30｜每天 19:00',
+    plan:[['股四頭肌等長收縮',3,10],['直膝抬腿',3,12],['膝關節彎曲運動',2,15]],
+    recs:[['10/22','直膝抬腿',36,12,2],['10/22','股四頭肌等長收縮',30,10,2],['10/21','膝關節彎曲運動',30,15,2]]},
+  {name:'陳淑芬', id:'A1135', surgery:'肩關節手術', postop:20, days:'yyyyyyn', pains:[2,2,1,2,1,1,null],
+    alert:'', sched:'10/03–11/28｜每天 08:30',
+    plan:[['鐘擺運動',3,10],['肩關節被動前舉',2,10],['握力球訓練',3,15]],
+    recs:[['10/21','鐘擺運動',30,10,1],['10/21','握力球訓練',45,8,1],['10/20','肩關節被動前舉',20,12,1]]}
+];
+const demoRate = (p) => Math.round(p.days.split('').filter(x=>x==='y').length / 7 * 100);
+const demoPain = (p) => p.pains.filter(v=>v!==null).slice(-1)[0];
+const PLAYLIST_ID ='PLy50NfNABdXOisExo2m6TtjsjMsQk4qPc';
 const PLAYLIST_URL = 'https://www.youtube.com/playlist?list=' + PLAYLIST_ID;
 const GUIDES = {
   '股四頭肌等長收縮':{steps:['平躺，雙腿伸直。','大腿前側出力，把膝蓋往床面壓，感覺大腿肌肉繃緊。','停留 5 秒後放鬆。'], note:'出力時保持正常呼吸，不要憋氣。'},
@@ -303,24 +320,21 @@ function staffHead(cur){
 function staffList(){
   const a = hasAlert();
   const rows = [
-    ['王小明','A1023','膝關節置換術', rate()+'%', latestPain(), a],
-    ['李美華','A1047','髖關節置換術','40%',3,true],
-    ['張志豪','A1102','前十字韌帶重建','100%',2,false],
-    ['陳淑芬','A1135','肩關節手術','86%',1,false]
-  ];
+    ['王小明','A1023','膝關節置換術', rate()+'%', latestPain(), a]
+  ].concat(DEMO_PTS.map(p=>[p.name, p.id, p.surgery, demoRate(p)+'%', demoPain(p), !!p.alert]));
   return `${staffHead('list')}<main class="s-main fade">
   <div class="row"><h2 class="page">病患清單</h2><button type="button" class="btn" data-sched="new">＋ 新增復健課表</button></div>
   ${st.listMsg?`<div class="ok" role="status">${st.listMsg}</div>`:''}
   <section class="alerts" aria-labelledby="al"><h3 id="al">異常通知（${pending().length+1} 筆待處理）</h3>
     <div class="sub">異常判定：疼痛分數 ≥ ${PAIN_ALERT} 分，或連續 3 個應復健日未完成。同一筆紀錄只通知一次。</div>
     ${pending().map(x=>`<div class="alert-row"><div class="who">王小明</div><div class="what">疼痛分數 ${x.pain} 分${riseText(x)}｜${esc(x.act)}</div><div class="when">${x.date===TODAY?'今天':x.date}</div><button type="button" data-s="patient">查看</button></div>`).join('')}
-    <div class="alert-row"><div class="who">李美華</div><div class="what">連續 3 個應復健日未完成</div><div class="when">今天 08:00</div><button type="button" data-act="demoOnly">查看</button></div>
+    <div class="alert-row"><div class="who">李美華</div><div class="what">連續 3 個應復健日未完成</div><div class="when">今天 08:00</div><button type="button" data-pt="0">查看</button></div>
   </section>
   <section class="card" aria-labelledby="pl">
     <div class="row" style="align-items:flex-end"><h3 id="pl">我負責的病患</h3>
       <div class="field" style="flex:0 1 340px"><label for="q">搜尋病患</label><input id="q" type="search" placeholder="姓名、病歷號或手術類型"></div></div>
     <div class="scroll"><table style="min-width:760px"><thead><tr><th>病患</th><th>病歷號</th><th>手術類型</th><th>本週完成率</th><th>最近疼痛分數</th><th>狀態</th><th>操作</th></tr></thead><tbody>
-    ${rows.map((r,i)=>`<tr data-q="${r[0]} ${r[1]} ${r[2]}"><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td><span class="pill ${r[5]?'bad':'good'}">${r[5]?'異常':'正常'}</span></td><td><button type="button" class="link" ${i===0?'data-s="patient"':'data-act="demoOnly"'}>查看紀錄</button></td></tr>`).join('')}
+    ${rows.map((r,i)=>`<tr data-q="${r[0]} ${r[1]} ${r[2]}"><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td><span class="pill ${r[5]?'bad':'good'}">${r[5]?'異常':'正常'}</span></td><td><button type="button" class="link" ${i===0?'data-s="patient"':`data-pt="${i-1}"`}>查看紀錄</button></td></tr>`).join('')}
     <tr id="noMatch" hidden><td colspan="7" class="sub">找不到符合的病患</td></tr>
     </tbody></table></div>
   </section></main>`;
@@ -350,8 +364,7 @@ function staffSchedule(){
   <div class="row" style="justify-content:flex-end"><button type="button" class="btn plain" data-s="${edit?'patient':'list'}">取消</button><button type="button" class="btn" data-act="saveSched">${edit?'儲存變更並通知病患':'儲存並通知病患'}</button></div>
   </main>`;
 }
-function painChart(){
-  const pains = painSeries();
+function painChart(pains = painSeries()){
   return `<div class="chart" role="img" aria-label="近 7 天疼痛分數">${pains.map(v=> v===null
       ? `<div><span>—</span><i style="height:2px"></i></div>`
       : `<div class="${v>=PAIN_ALERT?'hot':''}"><span>${v}</span><i style="height:${Math.max(v*16,2)}px"></i></div>`).join('')}</div>
@@ -396,6 +409,30 @@ function staffPatient(){
     <div class="row" style="justify-content:flex-end"><button type="button" class="btn" data-act="feedback">送出回饋</button></div>`}
     ${st.replySent?`<div class="msg mine"><span class="sub">病患回覆｜剛剛</span><p>${esc(st.replyText)}</p></div>`:''}
   </section></main>`;
+}
+// 其他病患的紀錄頁（範例資料，唯讀）
+function staffDemo(){
+  const p = DEMO_PTS[st.demoPt];
+  const r = demoRate(p), done = p.days.split('').filter(x=>x==='y').length;
+  return `${staffHead('list')}<main class="s-main fade">
+  <button type="button" class="link" data-s="list">← 返回病患清單</button>
+  <div class="row"><div><h2 class="page">${esc(p.name)}</h2><div class="sub">病歷號 ${p.id}｜${esc(p.surgery)}｜術後第 ${p.postop} 天</div></div></div>
+  ${p.alert?`<section class="alerts" aria-label="異常事件"><h3>異常事件：${esc(p.alert)}</h3><div class="sub">今天 08:00｜系統已標示異常，建議聯繫病患了解狀況</div></section>`:''}
+  <div class="grid2">
+    <section class="card" aria-labelledby="d1h"><h3 id="d1h">本週完成率</h3><div class="big">${r}%</div><div class="sub">7 個應復健日中完成 ${done} 天（當天課表全部做完才算完成）</div><div class="bar"><span style="width:${r}%"></span></div></section>
+    <section class="card" aria-labelledby="d2h"><h3 id="d2h">疼痛分數趨勢（近 7 天，0–10 分）</h3>${painChart(p.pains)}</section>
+  </div>
+  <div class="grid2">
+    <section class="card" aria-labelledby="d3h"><div class="row"><h3 id="d3h">目前課表</h3><span class="pill good">執行中</span></div>
+      <div>${p.plan.map(x=>`<div class="plan"><span>${esc(x[0])}</span><span class="sub">${x[1]} 組 × 每組 ${x[2]} 下</span></div>`).join('')}</div>
+      <div class="sub">期間 ${p.sched}</div>
+    </section>
+    <section class="card" aria-labelledby="d4h"><h3 id="d4h">近期復健紀錄</h3><div class="scroll"><table style="min-width:420px"><thead><tr><th>日期</th><th>動作</th><th>次數</th><th>時間</th><th>疼痛</th></tr></thead><tbody>
+      ${p.recs.map(x=>`<tr><td>${x[0]}</td><td>${esc(x[1])}</td><td>${x[2]}</td><td>${x[3]} 分</td><td style="${x[4]>=PAIN_ALERT?'color:var(--alert-ink);font-weight:700':''}">${x[4]}</td></tr>`).join('')}
+    </tbody></table></div></section>
+  </div>
+  <div class="sub" style="font-size:13px">此為範例病患資料；修改課表、文字回饋與匯出報告的流程請以「王小明」示範。</div>
+  </main>`;
 }
 function staffReport(){
   const pains = painSeries().filter(v=>v!==null);
@@ -612,7 +649,7 @@ function render(){
   if (st.side==='staff' && !st.staffUser) {
     app.innerHTML = loginCard('staff', '醫療人員登入', '員工帳號', '帳號 pt.lin');
   } else if (st.side==='staff') {
-    app.innerHTML = ({list:staffList, schedule:staffSchedule, patient:staffPatient, library:staffLibrary, report:staffReport})[st.s]();
+    app.innerHTML = ({list:staffList, schedule:staffSchedule, patient:staffPatient, demo:staffDemo, library:staffLibrary, report:staffReport})[st.s]();
   } else if (st.side==='admin' && !st.adminUser) {
     app.innerHTML = loginCard('admin', '系統管理者登入', '管理者帳號', '帳號 admin01');
   } else if (st.side==='admin') {
@@ -630,6 +667,7 @@ document.addEventListener('click', (e)=>{
   const d = t.dataset;
   if (d.side) return set({side:d.side});
   if (d.s) return set({s:d.s, libForm:null, libDel:null, libMsg:'', schedMsg:'', reportMsg:'', confirmOff:false, listMsg:''});
+  if (d.pt !== undefined) return set({s:'demo', demoPt:Number(d.pt), listMsg:''});
   if (d.guide !== undefined) return set({p:'guide', guide:Number(d.guide), videoOn:false});
   if (d.rec) return set({p:'record', recAct:d.rec, recView:'form', editId:null, pain:null});
   if (d.unlock) { const fails = Object.assign({}, st.fails); delete fails['u:'+d.unlock]; return set({fails, userMsg:`已解除「${d.unlock}」的登入鎖定`}); }
